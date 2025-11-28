@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Simulator</title>
+    <script type="importmap">
+    {
+      "imports": {
+        "@websim/websim-socket": "https://esm.websim.com/@websim/websim-socket",
+        "marked": "https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js",
+        "dompurify": "https://cdn.jsdelivr.net/npm/dompurify/dist/purify.es.min.js"
+      }
+    }
+    </script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="chat.css">
+    <link rel="stylesheet" href="messages.css">
+    <link rel="stylesheet" href="modals.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <a id="credits-button" href="https://websim.com/@FloppaTheHecker/admin-simulator/" target="_blank" rel="noopener noreferrer">Original game by @FloppaTheHecker</a>
+    <div id="reputation-container" class="hidden">
+        <div id="reputation-label" data-key="reputationLabel">Admin Reputation</div>
+        <div id="reputation-bar">
+            <div id="reputation-fill"></div>
+            <div id="reputation-text">50%</div>
+        </div>
+    </div>
+    <div id="task-notification-container"></div>
+    <div id="glitch-overlay" class="hidden"></div>
+    <div id="boss-container" class="hidden">
+        <div id="boss-name">HACKER</div>
+        <div id="boss-hp-bar">
+            <div id="boss-hp-fill"></div>
+            <div id="boss-hp-text">100%</div>
+        </div>
+    </div>
+    <div id="overlay" class="hidden"></div>
+    <div id="language-switcher">
+        <button id="language-button" data-key="language">Language</button>
+        <button id="fullscreen-button" title="Toggle Fullscreen">⤢</button> <!-- NEW: fullscreen toggle -->
+        <div id="language-dropdown" class="hidden">
+            <a href="#" data-lang="en">English</a>
+            <a href="#" data-lang="ru">Русский</a>
+            <a href="#" data-lang="es">Español</a>
+            <a href="#" data-lang="fr">Français</a>
+            <a href="#" data-lang="de">Deutsch</a>
+            <a href="#" data-lang="zh">中文</a>
+            <a href="#" data-lang="ja">日本語</a>
+            <a href="#" data-lang="tr">Türkçe</a>
+        </div>
+    </div>
+    <div id="main-container">
+        <div id="menu-container" class="menu-container">
+            <h1 class="title" data-key="title">Admin Simulator</h1>
+            <div class="button-container">
+                <button id="start-button" data-key="startButton">Start</button>
+                <button id="settings-button" data-key="settingsButton">Settings</button>
+                <button id="suggestions-button" data-key="suggestionsButton">Suggestions</button>
+                <button id="add-feature-button" data-key="addFeatureButton" class="menu-button">Add Feature</button>
+            </div>
+        </div>
+
+        <div id="gamemode-container" class="menu-container hidden">
+            <h1 class="title" data-key="chooseGamemode">Choose Gamemode</h1>
+            <div class="gamemode-columns">
+                 <div class="gamemode-column">
+                    <h3 class="column-title">Host a Game (Admin)</h3>
+                    <button id="sandbox-button" data-key="sandboxButton">Sandbox</button>
+                    <button id="story-button" data-key="storyButton">Story Mode</button>
+                    <button id="player-button" data-key="playerButton">Be the Player (vs AI Admin)</button>
+                    <button id="hacker-button" data-key="hackerButton">Be Hacker</button>
+                    <button id="hacker-sandbox-button" data-key="hackerSandboxButton">Hacker (Sandbox)</button>
+                </div>
+                 <div class="gamemode-column">
+                    <h3 class="column-title">Join a Game (Player)</h3>
+                    <div class="join-room-container">
+                        <input type="text" id="room-code-input" placeholder="Enter Room Code...">
+                        <button id="join-room-button" data-key="joinRoomButton">Join as Player</button>
+                        <button id="join-admin-button" data-key="joinAdminButton">Join as Admin</button>
+                    </div>
+                </div>
+            </div>
+
+            <button id="back-button" data-key="backButton">Back</button>
+        </div>
+
+        <div id="hacker-lobby-container" class="menu-container hidden">
+            <h1 class="title" data-key="hackerLobbyTitle">Choose a Target</h1>
+            <ul id="hacker-chat-list">
+                <!-- Server list will be generated here -->
+            </ul>
+            <div class="button-container">
+                 <button id="hacker-back-button" data-key="backButton">Back</button>
+            </div>
+        </div>
+        
+        <div id="buddylove-lobby-container" class="menu-container hidden">
+            <h1 class="title" data-key="buddyLoveLobbyTitle">BuddyLove13's Control Panel</h1>
+            <p data-key="buddyLoveLobbyDescription">Active Rooms (Simulated List):</p>
+            <ul id="buddylove-room-list">
+                <!-- BuddyLove13's special room list will be generated here -->
+            </ul>
+            <div class="button-container">
+                 <button id="buddylove-back-button" data-key="backButton">Back</button>
+            </div>
+        </div>
+
+        <div id="chat-container" class="hidden">
+            <!-- Join Request Panel (Host only) -->
+            <div id="join-request-panel" class="hidden">
+                <h4>Incoming Join Requests:</h4>
+                <ul id="join-request-list"></ul>
+            </div>
+            <!-- Hacker Stats Panel (only visible in hacker mode) -->
+            <div id="hacker-stats-panel" class="hidden">
+                <h3>🔴 HACKER INTERFACE 🔴</h3>
+                <div class="hacker-stat">
+                    <label>Level:</label>
+                    <span id="hacker-level">Level 1</span>
+                </div>
+                <div class="hacker-stat">
+                    <label>Experience:</label>
+                    <div id="hacker-exp-bar">
+                        <div id="hacker-exp-fill"></div>
+                    </div>
+                </div>
+                <div class="hacker-stat">
+                    <label>System Corruption:</label>
+                    <div id="system-corruption-bar">
+                        <div id="system-corruption-fill"></div>
+                    </div>
+                </div>
+                <div class="active-viruses">
+                    <label>Active Viruses:</label>
+                    <div id="virus-list"></div>
+                </div>
+            </div>
+
+            <div id="admin-panel">
+                <h3 id="admin-panel-title" data-key="adminPanelTitle">Admin Panel</h3>
+                <div id="admin-actions">
+                    <button class="admin-button" id="warn-button" data-key="warnButton">Warn</button>
+                    <button class="admin-button" id="mute-button" data-key="muteButton">Mute</button>
+                    <button class="admin-button" id="ban-button" data-key="banButton">Ban</button>
+                    <button class="admin-button" id="kick-user-button" data-key="kickUserButton">Kick User</button>
+                    <button class="admin-button" id="impersonate-button" data-key="impersonateButton">Send As User</button>
+                    <button class="admin-button" id="say-button" data-key="sayButton">Say</button>
+                    <button class="admin-button" id="toggle-vip-button" data-key="toggleVipButton">Toggle VIP</button>
+                    <button class="admin-button" id="change-nickname-button" data-key="changeNicknameButton">Change Nickname</button>
+                    <button class="admin-button sandbox-only-item" id="reset-user-button" data-key="resetUserButton">Reset User</button>
+                    <hr>
+                    <button class="admin-button" id="admin-msg-button" data-key="adminMsgButton">Send Admin Message</button>
+                    <button class="admin-button" id="send-system-button" data-key="sendSystemButton">Send System Message</button>
+                    <button class="admin-button" id="update-rules-button" data-key="updateRulesButton">Update Rules</button>
+                    <button class="admin-button" id="add-bot-button" data-key="addBotButton">Add Bot</button>
+                    <button class="admin-button" id="summon-violator-button" data-key="summonViolatorButton">Summon Violator</button>
+                    <button class="admin-button sandbox-only-item" id="summon-hacker-button" data-key="summonHackerButton">Summon Hacker</button>
+                    <button class="admin-button" id="toggle-slow-mode-button" data-key="toggleSlowModeButton">Toggle Slow Mode</button>
+                    <button class="admin-button" id="toggle-chat-lock-button" data-key="toggleChatLockButton">Lock Chat</button>
+                    <button class="admin-button" id="toggle-images-button" data-key="toggleImagesButton">Toggle Images</button>
+                    <button class="admin-button" id="freeze-chat-button" data-key="freezeChatButton">Freeze Chat</button>
+                    <button class="admin-button" id="clear-chat-button" data-key="clearChatButton">Clear Chat History</button>
+                    
+                    <hr>
+                    <button class="admin-button" id="save-button" data-key="saveButton">Save</button>
+                    <button class="admin-button" id="load-button" data-key="loadButton">Load</button>
+                    <hr>
+                    <button class="admin-button" id="save-clip-button" data-key="saveClipButton">Save Clip</button>
+                    <button class="admin-button sandbox-only-item" id="view-clips-button" data-key="viewClipsButton">View Clips</button>
+                    <hr>
+                    <button class="admin-button" id="shuffle-nicknames-button" data-key="shuffleNicknamesButton">Shuffle Nicknames</button>
+                    <button class="admin-button" id="set-mood-button" data-key="setMoodButton">Set Mood</button>
+                    <button class="admin-button" id="set-personality-button" data-key="setPersonalityButton">Set Personality</button>
+                    <button class="admin-button" id="set-age-button" data-key="setAgeButton">Set Age</button>
+                    <button class="admin-button" id="set-location-button" data-key="setLocationButton">Set Location</button>
+                    <button class="admin-button" id="random-mood-button" data-key="randomMoodButton">Give Random Mood</button>
+                    <button class="admin-button" id="spotlight-message-button" data-key="spotlightMessageButton">Spotlight Message</button>
+                    <button class="admin-button" id="reveal-personality-button" data-key="revealPersonalityButton">Reveal Personality</button>
+                    <button class="admin-button" id="reveal-age-button" data-key="revealAgeButton">Reveal Age</button>
+                    <button class="admin-button" id="obey-button" data-key="obeyButton">Obey</button>
+                    <button class="admin-button" id="run-poll-button" data-key="runPollButton">Run a Poll</button>
+                    <button class="admin-button" id="trigger-event-button" data-key="triggerEventButton">Trigger Event</button>
+                    <hr class="sandbox-only-item">
+                    <button class="admin-button sandbox-only-item" id="promote-mod-button" data-key="promoteModButton">Promote to Mod</button>
+                    <button class="admin-button sandbox-only-item" id="promote-co-admin-button" data-key="promoteCoAdminButton">Promote to Co-Admin</button>
+                    <button class="admin-button sandbox-only-item" id="demote-co-admin-button" data-key="demoteCoAdminButton">Demote Co-Admin</button>
+                    <button class="admin-button sandbox-only-item" id="set-user-emoji-button" data-key="setUserEmojiButton">Set User Emoji</button>
+                    <button class="admin-button sandbox-only-item" id="remove-hacked-status-button" data-key="removeHackedStatusButton">Heal/Uncorrupt</button>
+                    <button class="admin-button sandbox-only-item" id="give-compliment-button" data-key="giveComplimentButton">Give Compliment</button>
+                    <button class="admin-button sandbox-only-item" id="toggle-nickname-prefix-button" data-key="toggleNicknamePrefixButton">Toggle Nickname Prefix</button>
+                    <button class="admin-button sandbox-only-item" id="start-countdown-button" data-key="startCountdownButton">Start Countdown</button>
+                    <button class="admin-button sandbox-only-item" id="toggle-chat-background-effect-button" data-key="toggleChatBackgroundEffectButton">Toggle Chat BG Effect</button>
+                    <button class="admin-button sandbox-only-item" id="mass-reset-mood-button" data-key="massResetMoodButton">Mass Reset Mood</button>
+                    <button class="admin-button sandbox-only-item" id="control-user-button" data-key="controlUserButton">Control User</button>
+                    <button class="admin-button sandbox-only-item" id="stop-control-button" style="display: none;" data-key="stopControlButton">Stop Control</button>
+                    <button class="admin-button sandbox-only-item" id="add-custom-user-button" data-key="addCustomUserButton">Add Custom User</button>
+                    <button class="admin-button sandbox-only-item" id="add-websim-user-button" data-key="addWebsimUserButton">Add Websim User</button>
+                    <button class="admin-button sandbox-only-item" id="join-as-player-button" data-key="joinAsPlayerButton">Join as Player</button>
+                    <button class="admin-button sandbox-only-item" id="custom-action-button" data-key="customActionButton">Custom Action</button>
+                    <button class="admin-button sandbox-only-item" id="add-custom-panel-button" data-key="addCustomPanelButton">Add Custom Button</button>
+                    <button class="admin-button sandbox-only-item" id="change-my-nickname-button" data-key="changeMyNicknameButton">Change My Nickname</button>
+                    <button class="admin-button sandbox-only-item" id="change-my-mood-button" data-key="changeMyMoodButton">Change My Mood</button>
+                    <hr>
+                    <!-- New: Ad button -->
+                    <button class="admin-button" id="give-ad-button" data-key="giveAdButton">Give Ad</button>
+                    <hr>
+                    <!-- Basic Hacker Tools (Level 1) -->
+                    <button class="admin-button hacker-ability" id="virus-spread-button" data-key="virusSpreadButton">Virus Spread</button>
+                    <button class="admin-button hacker-ability" id="crash-server-button" data-key="crashServerButton">Crash Server</button>
+                    <button class="admin-button hacker-ability" id="corrupt-server-button" data-key="corruptServerButton">Corrupt Entire Server</button>
+                    
+                    <!-- Intermediate Hacker Tools (Level 2-3) -->
+                    <button class="admin-button hacker-ability" id="data-theft-button" data-key="dataTheftButton">Data Theft</button>
+                    <button class="admin-button hacker-ability" id="system-backdoor-button" data-key="systemBackdoorButton">System Backdoor</button>
+                    <button class="admin-button hacker-ability" id="clone-user-button" data-key="cloneUserButton">Clone User</button>
+                    
+                    <!-- Advanced Hacker Tools (Level 4-5) -->
+                    <button class="admin-button hacker-ability" id="reality-distort-button" data-key="realityDistortButton">Reality Distort</button>
+                    <button class="admin-button hacker-ability" id="time-manip-button" data-key="timeManipButton">Time Manipulation</button>
+                    <button class="admin-button hacker-ability" id="memory-wipe-button" data-key="memoryWipeButton">Memory Wipe</button>
+                    
+                    <!-- Master Hacker Tools (Level 6+) -->
+                    <button class="admin-button hacker-ability" id="puppet-master-button" data-key="puppetMasterButton">Puppet Master</button>
+                    <button class="admin-button hacker-ability" id="system-overload-button" data-key="systemOverloadButton">System Overload</button>
+                    <button class="admin-button hacker-ability" id="digital-possession-button" data-key="digitalPossessionButton">Digital Possession</button>
+                </div>
+                <hr class="sandbox-only-item">
+                <div id="custom-buttons-container" class="sandbox-only-item">
+                    <!-- Custom buttons will be added here -->
+                </div>
+                <div id="boss-fight-actions" class="hidden">
+                     <button class="admin-button" id="unwarn-player-button" data-key="unwarnPlayerButton">Unwarn</button>
+                     <button class="admin-button" id="unmute-player-button" data-key="unmutePlayerButton">Unmute</button>
+                </div>
+            </div>
+            <div id="chat-view">
+                <div id="chat-header">
+                    <div id="location-display">Location: a generic chat room</div>
+                    <div id="room-code-display" class="hidden"></div>
+                </div>
+                <div id="messages-container">
+                    <!-- Messages will be appended here -->
+                </div>
+                <div id="reply-indicator" class="hidden">
+                    <div id="reply-indicator-text"></div>
+                    <button id="cancel-reply-button">&times;</button>
+                </div>
+                <div id="mention-suggestions" class="hidden"></div>
+                <div id="typing-indicator" class="hidden"></div>
+                <div id="control-indicator" class="hidden"></div>
+                <form id="message-form">
+                    <button type="button" id="upload-image-button" title="Send Image">🖼</button>
+                    <input type="text" id="message-input" placeholder="Enter your message..." autocomplete="off">
+                    <button type="submit" id="send-button">SEND</button>
+                </form>
+            </div>
+            <div id="player-mode-panel" class="hidden">
+                <h3 data-key="playerModeTitle">Player Controls</h3>
+                <div id="mood-selector">
+                    <!-- Mood buttons will be inserted here -->
+                </div>
+            </div>
+            <div id="participants-container">
+                <h3 id="participants-title" data-key="participantsTitle">Participants</h3>
+                <ul id="participants-list">
+                    <!-- Participants will be appended here -->
+                </ul>
+                <div id="selection-info" class="hidden"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="mute-modal" class="modal-container hidden">
+        <div class="modal-content">
+            <h3 data-key="muteModalTitle">Mute Participant</h3>
+            <p id="mute-modal-text"></p>
+            <div class="modal-options">
+                <button data-duration="60">1 Minute</button>
+                <button data-duration="300">5 Minutes</button>
+                <button data-duration="900">15 Minutes</button>
+            </div>
+            <button id="mute-modal-cancel" class="modal-cancel-button" data-key="cancelButton">Cancel</button>
+        </div>
+    </div>
+
+    <div id="game-over-modal" class="modal-container hidden">
+        <div class="modal-content">
+            <h3 data-key="gameOverTitle">Game Over</h3>
+            <p id="game-over-text"></p>
+            <div class="modal-actions">
+                <button id="game-over-restart">Restart</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="set-mood-modal" class="modal-container hidden">
+        <div class="modal-content">
+            <h3 id="set-mood-modal-title" data-key="setMoodModalTitle">Set Mood for...</h3>
+            <div id="set-mood-options" class="modal-options mood-options">
+                <!-- Mood buttons will be dynamically inserted here -->
+            </div>
+            <button id="set-mood-cancel" class="modal-cancel-button" data-key="cancelButton">Cancel</button>
+        </div>
+    </div>
+
+    <div id="set-personality-modal" class="modal-container hidden">
+        <div class="modal-content">
+            <h3 id="set-personality-modal-title" data-key="setPersonalityModalTitle">Set Personality for...</h3>
+            <div id="set-personality-options" class="modal-options personality-options">
+                <!-- Personality buttons will be dynamically inserted here -->
+            </div>
+            <button id="set-personality-cancel" class="modal-cancel-button" data-key="cancelButton">Cancel</button>
+        </div>
+    </div>
+
+    <div id="story-intro-modal" class="modal-container hidden">
+        <div class="modal-content">
+            <h3 data-key="storyIntroTitle">Welcome to Story Mode</h3>
+            <p id="story-intro-text" data-key="storyIntroText">Your reputation is on the line. Moderate the chat, enforce the rules, and keep the peace. Your actions will be judged. But be warned... not everyone here is who they seem. A threat looms within the system.</p>
+            <div class="modal-actions">
+                <button id="story-intro-ok">Begin</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="poll-modal" class="modal-container hidden">
+        <div class="modal-content">
+            <h3 data-key="pollModalTitle">Create a Poll</h3>
+            <input type="text" id="poll-question-input" placeholder="Poll Question...">
+            <input type="text" id="poll-options-input" placeholder="Options, separated by commas (e.g. A, B, C)...">
+            <div class="modal-actions">
+                <button id="poll-send">Launch Poll</button>
+                <button id="poll-cancel" class="modal-cancel-button">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="admin-message-modal" class="modal-container hidden">
+        <div class="modal-content">
+            <h3 data-key="adminMessageModalTitle">Send Global Admin Message</h3>
+            <textarea id="admin-message-input" placeholder="Your global message..."></textarea>
+            <div class="modal-actions">
+                <button id="admin-message-send">Send</button>
+                <button id="admin-message-cancel" class="modal-cancel-button">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="rules-modal" class="modal-container hidden">
+        <div class="modal-content">
+            <h3 data-key="rulesModalTitle">Update Chat Rules</h3>
+            <textarea id="rules-input"></textarea>
+            <div class="modal-actions">
+                <button id="rules-save">Save & Broadcast</button>
+                <button id="rules-cancel" class="modal-cancel-button">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="impersonate-modal" class="modal-container hidden">
+        <div class="modal-content">
+            <h3 id="impersonate-modal-title">Send Message As...</h3>
+            <p id="impersonate-modal-text"></p>
+            <textarea id="impersonate-message-input" placeholder="The message they 'wrote'..."></textarea>
+            <div class="modal-actions">
+                <button id="impersonate-message-send">Send</button>
+                <button id="impersonate-message-cancel" class="modal-cancel-button">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="say-as-modal" class="modal-container hidden">
+        <div class="modal-content">
+            <h3 id="say-as-modal-title">Make User Say...</h3>
+            <p id="say-as-modal-text">This message will appear as if the selected user wrote it.</p>
+            <textarea id="say-as-input" placeholder="Enter the message the user should 'say'..."></textarea>
+            <div class="modal-actions">
+                <button id="say-as-send">Send</button>
+                <button id="say-as-cancel" class="modal-cancel-button">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="change-nickname-modal" class="modal-container hidden">
+        <div class="modal-content">
+            <h3 id="change-nickname-modal-title" data-key="changeNicknameModalTitle">Change Nickname</h3>
+            <p id="change-nickname-modal-text"></p>
+            <input type="text" id="change-nickname-input" placeholder="Enter new nickname...">
+            <div class="modal-actions">
+                <button id="change-nickname-send">Change</button>
+                <button id="change-nickname-cancel" class="modal-cancel-button">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="set-age-modal" class="modal-container hidden">
+        <div class="modal-content">
+            <h3 id="set-age-modal-title" data-key="setAgeModalTitle">Set Age</h3>
+            <p id="set-age-modal-text"></p>
+            <input type="number" id="set-age-input" placeholder="Enter new age...">
+            <div class="modal-actions">
+                <button id="set-age-send">Change</button>
+                <button id="set-age-cancel" class="modal-cancel-button">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="obey-modal" class="modal-container hidden">
+        <div class="modal-content">
+            <h3 id="obey-modal-title">Give Command To...</h3>
+            <p id="obey-modal-text"></p>
+            <textarea id="obey-command-input" placeholder="The command for the user to obey... (e.g., 'Only speak in questions.')"></textarea>
+            <div class="modal-actions">
+                <button id="obey-command-send">Enforce</button>
+                <button id="obey-command-cancel" class="modal-cancel-button">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="chat-corrupted-modal" class="modal-container hidden">
+        <div class="modal-content">
+            <h3 data-key="chatCorruptedTitle">Chat Corrupted</h3>
+            <p data-key="chatCorruptedText">System integrity compromised. All users have been purged. Moving to the next target.</p>
+            <div class="modal-actions">
+                <button id="chat-corrupted-ok">Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="add-custom-user-modal" class="modal-container hidden">
+        <div class="modal-content">
+            <h3 data-key="addCustomUserTitle">Add a Custom User</h3>
+            <input type="text" id="custom-user-name-input" placeholder="Enter name...">
+            <select id="custom-user-personality-select">
+                <option value="random">Random</option>
+                <option value="normal">Normal</option>
+                <option value="pedant">Pedant</option>
+                <option value="illiterate">Illiterate</option>
+                <option value="short-tempered">Short-Tempered</option>
+                <option value="clueless">Clueless</option>
+                <option value="violator">Violator</option>
+                <option value="infected">Infected</option>
+                <option value="custom">Custom...</option>
+            </select>
+            <div class="modal-actions">
+                <button id="create-custom-user-button">Create</button>
+                <button id="custom-user-cancel-button" class="modal-cancel-button">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="add-websim-user-modal" class="modal-container hidden">
+        <div class="modal-content">
+            <h3 data-key="addWebsimUserTitle">Add a Websim User</h3>
+            <p>Enter a Websim username. Their personality will be generated based on their profile and projects.</p>
+            <input type="text" id="websim-username-input" placeholder="Enter username (e.g., FloppaTheHecker)...">
+            <div class="modal-actions">
+                <button id="create-websim-user-button">Create</button>
+                <button id="websim-user-cancel-button" class="modal-cancel-button">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="custom-action-modal" class="modal-container hidden">
+        <div class="modal-content">
+            <h3 id="custom-action-modal-title">Custom Action For...</h3>
+            <p id="custom-action-modal-text">Enter a command for the AI to interpret and execute on this user.</p>
+            <textarea id="custom-action-input" placeholder="e.g., 'Make them talk like a pirate', 'Mute them for 10 seconds', 'Change their name to CoolGuy123'"></textarea>
+            <div class="modal-actions">
+                <button id="custom-action-send">Execute</button>
+                <button id="custom-action-cancel" class="modal-cancel-button">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="add-custom-panel-button-modal" class="modal-container hidden">
+        <div class="modal-content">
+            <h3 data-key="addCustomPanelButtonTitle">Create a Custom Panel Button</h3>
+            <p data-key="addCustomPanelButtonText">This button will perform a custom action. The AI will determine if it affects a selected user or the whole chat. (e.g., "Start a server reboot event", "Put a 👑 emoji on the selected user", "End the current event")</p>
+            <input type="text" id="custom-button-label-input" placeholder="Button Label (e.g., 'Pirate Mode', 'Start Reboot')">
+            <textarea id="custom-button-action-input" placeholder="Action Description (e.g., 'Make the selected user talk like a pirate', 'Start a server reboot event')"></textarea>
+            <div class="modal-actions">
+                <button id="create-custom-panel-button">Create</button>
+                <button id="custom-panel-button-cancel" class="modal-cancel-button">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="settings-modal" class="modal-container hidden">
+        <div class="modal-content">
+            <h3 data-key="settingsModalTitle">Settings</h3>
+            <div class="settings-option">
+                <label for="volume-slider" data-key="volumeLabel">Music Volume</label>
+                <input type="range" id="volume-slider" min="0" max="1" step="0.01">
+            </div>
+            
+            <div class="settings-option">
+                <label for="allow-swearing-toggle" data-key="allowSwearingLabel">Allow Swearing</label>
+                <input type="checkbox" id="allow-swearing-toggle">
+            </div>
+            
+            <div class="settings-option">
+                <label for="tts-toggle" data-key="ttsLabel">Enable TTS for Admin/Bot Messages</label>
+                <input type="checkbox" id="tts-toggle">
+            </div>
+
+            <button id="settings-close-button" data-key="closeButton">Close</button>
+        </div>
+    </div>
+
+    <!-- New: Give Ad Modal -->
+    <div id="give-ad-modal" class="modal-container hidden">
+        <div class="modal-content">
+            <h3 data-key="giveAdModalTitle">Give Ad to Participant</h3>
+            <p id="give-ad-modal-text"></p>
+            <div class="modal-actions">
+                <button id="give-ad-send" data-key="sendButton">Send Ad</button>
+                <button id="give-ad-cancel" class="modal-cancel-button" data-key="cancelButton">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- New: Suggestion Modal -->
+    <div id="suggestion-modal" class="modal-container hidden">
+        <div class="modal-content">
+            <h3 data-key="suggestionModalTitle">Submit Suggestion</h3>
+            <textarea id="suggestion-input" placeholder="Your suggestion..."></textarea>
+            <div class="modal-actions">
+                <button id="suggestion-send" data-key="sendButton">Send</button>
+                <button id="suggestion-cancel" class="modal-cancel-button" data-key="cancelButton">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- New: Add Feature Modal -->
+    <div id="add-feature-modal" class="modal-container hidden">
+        <div class="modal-content">
+            <h3 data-key="addFeatureModalTitle">Add a Custom Feature</h3>
+            <p data-key="addFeatureModalText">Describe the feature you want to add to your game. This will only affect your local experience! (e.g., "Add a button to make all users happy", "Change the chat border to green", "Give me 100 reputation", "Make messages pulse with color")</p>
+            <textarea id="feature-description-input" placeholder="Describe your feature..." data-key="featureDescriptionPlaceholder"></textarea>
+            <div class="modal-actions">
+                <button id="add-feature-send" data-key="addFeatureSend">Add Feature</button>
+                <button id="add-feature-cancel" class="modal-cancel-button" data-key="cancelButton">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW: Set User Emoji Modal -->
+    <div id="set-user-emoji-modal" class="modal-container hidden">
+        <div class="modal-content">
+            <h3 id="set-user-emoji-modal-title" data-key="setUserEmojiModalTitle">Set User Emoji</h3>
+            <p>Enter a single emoji to display next to their avatar.</p>
+            <div class="emoji-preview" id="set-user-emoji-preview"></div>
+            <input type="text" id="set-user-emoji-input" placeholder="Enter emoji (e.g., 👑, 🎉, 💡)">
+            <div class="modal-actions">
+                <button id="set-user-emoji-send" data-key="sendButton">Set Emoji</button>
+                <button id="set-user-emoji-cancel" class="modal-cancel-button" data-key="cancelButton">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW: Clips Log Modal -->
+    <div id="clips-log-modal" class="modal-container hidden">
+        <div class="modal-content">
+            <h3 data-key="clipsLogTitle">Saved Chat Clips</h3>
+            <ul id="clips-list" class="crash-op-log" style="max-height: 400px; padding: 15px; background: rgba(0,0,0,0.4);">
+                <!-- Clips will be loaded here -->
+            </ul>
+            <div class="modal-actions">
+                <button id="clips-log-close" class="modal-cancel-button" data-key="closeButton">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hacker Operation: CRASH SERVER (multi-step) -->
+    <div id="crash-operation-modal" class="modal-container hidden">
+        <div class="modal-content">
+            <h3 id="crash-op-title">Infiltration Protocol</h3>
+            <div id="crash-op-phase">Phase: Reconnaissance</div>
+            <div class="progress-wrap">
+                <div class="progress-track">
+                    <div id="crash-op-progress" class="progress-fill" style="width:0%"></div>
+                </div>
+                <div class="progress-stats">
+                    <span>Progress: <strong id="crash-op-progress-text">0%</strong></span>
+                    <span>Detection: <strong id="crash-op-detect-text">0%</strong></span>
+                </div>
+            </div>
+            <div id="crash-op-log" class="crash-op-log"></div>
+            <div id="crash-op-actions" class="modal-options">
+                <!-- Dynamic action buttons inserted here -->
+            </div>
+            <div class="modal-actions">
+                <button id="crash-op-abort" class="modal-cancel-button">Abort</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW: Waiting for Approval Screen (Client side only) -->
+    <div id="waiting-for-approval-screen" class="menu-container hidden">
+        <h1 class="title">Waiting for Host Approval...</h1>
+        <p>Your request to join the game has been sent. Please wait for the host to approve your entry.</p>
+        <p>Room Code: <span id="waiting-room-code-display"></span></p>
+    </div>
+
+    <script type="module" src="main.js"></script>
+</body>
+</html>

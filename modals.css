@@ -1,0 +1,242 @@
+
+```
+/* --- Modals --- */
+#overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 1999;
+    backdrop-filter: blur(5px);
+}
+
+#overlay.hidden {
+    display: none;
+}
+
+.modal-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2000;
+    width: 90%;
+    max-width: 500px;
+}
+
+.modal-container.hidden {
+    display: none;
+}
+
+.modal-content {
+    background-color: rgba(10, 10, 30, 0.95);
+    border: 2px solid #00aaff;
+    border-radius: 10px;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    box-shadow: 0 10px 40px rgba(0, 170, 255, 0.3);
+}
+
+.modal-content h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    text-shadow: 0 0 5px #00aaff;
+}
+
+.modal-options {
+    display: flex;
+    flex-wrap: wrap; 
+    justify-content: center;
+    gap: 15px;
+}
+
+.modal-options button, .modal-actions button {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1rem;
+    padding: 10px 20px;
+    background: transparent;
+    color: #00aaff;
+    border: 2px solid #00aaff;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.modal-options.mood-options button, .modal-options.personality-options button {
+    min-width: 120px; 
+}
+
+.modal-options button:hover, .modal-actions button:hover {
+    background-color: #00aaff;
+    color: #0a0a1a;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.modal-cancel-button {
+    color: #ff4d4d;
+    border-color: #ff4d4d;
+}
+
+.modal-cancel-button:hover {
+    background-color: #ff4d4d;
+    color: #0a0a1a;
+}
+
+#admin-message-input, #rules-input, #impersonate-message-input, #change-nickname-input, #poll-question-input, #poll-options-input, #obey-command-input, #set-age-input, #add-custom-user-modal input, #add-custom-user-modal select, #custom-action-modal textarea, #add-custom-panel-button-modal input, #add-custom-panel-button-modal textarea, #suggestion-input, #set-user-emoji-input {
+    width: 100%;
+    min-height: 40px;
+    background-color: rgba(10, 10, 30, 0.8);
+    border: 2px solid #0077ff;
+    border-radius: 5px;
+    color: #fff;
+    padding: 10px 15px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1rem;
+    resize: vertical;
+    box-sizing: border-box;
+}
+
+#admin-message-input, #rules-input, #impersonate-message-input, #obey-command-input, #suggestion-input {
+    min-height: 120px;
+}
+
+#custom-action-modal textarea, #add-custom-panel-button-modal textarea {
+    min-height: 120px;
+}
+
+.settings-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+}
+
+.settings-option label {
+    font-size: 1.1rem;
+    color: #ccc;
+}
+
+#volume-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 80%;
+    height: 8px;
+    background: #0a0a1a;
+    border: 1px solid #0077ff;
+    border-radius: 5px;
+    outline: none;
+    opacity: 0.7;
+    transition: opacity .2s;
+    cursor: pointer;
+}
+
+#volume-slider:hover {
+    opacity: 1;
+}
+
+#volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: #00aaff;
+    border-radius: 50%;
+    border: 2px solid #0a0a1a;
+    box-shadow: 0 0 5px #00aaff;
+}
+
+#volume-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: #00aaff;
+    border-radius: 50%;
+    border: 2px solid #0a0a1a;
+    box-shadow: 0 0 5px #00aaff;
+}
+
+/* Crash Operation modal extras */
+.progress-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.progress-track {
+    width: 100%;
+    height: 12px;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid #00aaff;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #ff0055, #ffc400, #00ffa6);
+    box-shadow: 0 0 10px rgba(0,255,166,0.5);
+    transition: width 0.4s ease;
+}
+
+.progress-stats {
+    display: flex;
+    justify-content: space-between;
+    color: #ccc;
+    font-size: 0.9rem;
+}
+
+.crash-op-log {
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid #0055cc;
+    border-radius: 6px;
+    padding: 10px;
+    max-height: 180px;
+    overflow-y: auto;
+    font-size: 0.9rem;
+    color: #cde8ff;
+}
+
+/* NEW: Set User Emoji Modal */
+#set-user-emoji-modal .modal-content {
+    align-items: center;
+    text-align: center;
+}
+
+#set-user-emoji-modal .emoji-preview {
+    font-size: 3rem;
+    margin: 10px 0;
+    line-height: 1; 
+    min-height: 1em; 
+}
+
+@media (max-width: 768px) {
+    .modal-container {
+        width: 95%;
+    }
+    
+    .modal-content {
+        padding: 20px;
+    }
+
+    .modal-content h3 {
+        font-size: 1.2rem;
+    }
+
+    .modal-options button, .modal-actions button {
+        font-size: 0.9rem;
+        padding: 8px 15px;
+    }
+}
